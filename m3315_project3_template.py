@@ -39,10 +39,10 @@ xa=0; xb=2
 alpha = func(xa); beta = func(xb)
 
 # index for methods: 0:Thomas, 1:Jacobi, 2:Gauss-Sidel, 3: SOR
-imethod=0
+imethod=2
 
 # number of cases, each case has different # of unknowns
-ncase=1
+ncase=4
 
 # table for results
 tbErr=zeros((ncase,4),float)
@@ -62,7 +62,6 @@ def LU3315(a,b,c,r):
 
     #Determine L,U factors
     u[0] = b[0]
-    print("u[0] " + str(u[0]))
     for k in range(1,n):
         l[k] = a[k]/u[k-1]
         u[k] = b[k] - l[k] * c[k-1]
@@ -71,7 +70,6 @@ def LU3315(a,b,c,r):
     z[0] = r[0]
     for k in range(1,n):
         z[k] = r[k] - l[k] * z[k-1]
-
 
     # Solve Uw = z.
     w[n-1] = z[n-1] / u[n-1]
@@ -102,8 +100,6 @@ for icase in range(ncase):
     coA = (A/float(h**2)) - (B/float(2*h))
     coB = (float(-2*A)/float(h**2)) + C
     coC = (float(A)/float(h**2)) + (float(B)/float(2*h))
-
-    print(str(coA) + " " + str(coB) + " " + str(coC));
 
     # claim the vectors needed
     xh = zeros(n,float) #x-values
@@ -141,32 +137,35 @@ for icase in range(ncase):
             c[i] = coC
 
         wh = LU3315(a,b,c,r)
-        print("a:")
-        print(wh)
-    # else:
-    #     # Iterative Methods
-    #     tol=10**(-8); err=1 # initial error and error tolerance
-    #     wh1=zeros(n,float) # vectors for computed values
-    #
-    #
-    #     while (err>tol):
-    #         icount[icase]=icount[icase]+1
-    #         if (imethod==1):
-    #             # Jacobi
-    #             ***
-    #             ***
-    #
-    #         elif (imethod==2):
-    #             # Gauss-Seidel
-    #             ***
-    #             ***
-    #         else:
-    #             # SOR
-    #             ***
-    #             ***
-    #
-    #         err=max(absolute(wh1-wh))
-    #         wh1=wh.copy()
+
+    else:
+        # Iterative Methods
+        tol=10**(-8); err=1 # initial error and error tolerance
+        wh1=zeros(n,float) # vectors for computed values
+
+
+        while (err>tol):
+            icount[icase]=icount[icase]+1
+            if (imethod==1):
+                # Jacobi
+                wh[0] = (r[0] - (coC * wh1[1]))/coB
+                for i in range(1, n-1):
+                    wh[i] = (r[i] - coC*wh1[i+1] - coA*wh1[i-1])/coB
+                wh[n-1] = (r[n-1] - (coA * wh1[n-2])) / coB;
+
+            elif (imethod==2):
+                # Gauss-Seidel
+                wh[0] = (r[0] - coC * wh[1]) / coB
+                for i in range(1, n-1):
+                    wh[i] = (r[i] - (coA * wh[i-1]) - (coC*wh[i+1]))/coB
+                wh[n-1] = (r[n-1] - coA * wh[n-2]) / coB
+            # else:
+            #     # SOR
+            #     ***
+            #     ***
+
+            err=max(absolute(wh1-wh))
+            wh1=wh.copy()
 
     #output
     tbErr[icase,0] = h
@@ -194,13 +193,6 @@ for icase in range(ncase):
     ax[kx,ky].plot(xe,ye,'-b',xplot,wplot,'ro' )
     ax[kx,ky].set_title('h='+str(h))
 
-print("-----------------")
-for i in range(len(r)):
-    print(r[i])
-print("-----------------")
-for i in range(len(wh)):
-    print(wh[i])
-print("-----------------")
 
 plt.savefig('result.pdf',format='pdf')
 plt.show()
