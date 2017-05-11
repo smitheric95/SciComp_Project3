@@ -39,7 +39,7 @@ xa=0; xb=2
 alpha = func(xa); beta = func(xb)
 
 # index for methods: 0:Thomas, 1:Jacobi, 2:Gauss-Sidel, 3: SOR
-imethod=2
+imethod=3
 
 # number of cases, each case has different # of unknowns
 ncase=4
@@ -159,10 +159,12 @@ for icase in range(ncase):
                 for i in range(1, n-1):
                     wh[i] = (r[i] - (coA * wh[i-1]) - (coC*wh[i+1]))/coB
                 wh[n-1] = (r[n-1] - coA * wh[n-2]) / coB
-            # else:
-            #     # SOR
-            #     ***
-            #     ***
+            else:
+                # SOR
+                wh[0] = (coB*wh[0] + (wopt*r[0]) - (coC*wh[1]) - (coB*wh[0]))/coB
+                for i in range(1,n-1):
+                    wh[i] = (coB*wh[i] + wopt*(r[i] - coA*wh[i-1] - coC*wh[i+1] - coB*wh[i]))/coB
+                wh[n-1] = (coB * wh[n-1] + (wopt * (r[n-1] - (coA * wh[n-2]) - (coB * wh[n-1])))) / coB
 
             err=max(absolute(wh1-wh))
             wh1=wh.copy()
